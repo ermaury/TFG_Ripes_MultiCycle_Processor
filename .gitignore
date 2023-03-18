@@ -5,7 +5,21 @@
 Makefile
 build*
 .vscode
+.vs
 
+# Compilation generated files and directories
+*vcxproj*
+*CMakeFiles*
+CMakeCache.txt
+cmake_install.cmake
+Release
+Ripes.dir
+*.sln
+*autogen*
+examples
+resources/fonts/fonts.qrc.depends
+resources/icons/icons.qrc.depends
+src/processors/layouts.qrc.depends
 
 # Qt generated files
 moc_*
