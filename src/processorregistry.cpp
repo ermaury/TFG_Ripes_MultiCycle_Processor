@@ -8,6 +8,7 @@
 #include "processors/RISC-V/rv5s_no_hz/rv5s_no_hz.h"
 #include "processors/RISC-V/rv6s_dual/rv6s_dual.h"
 #include "processors/RISC-V/rvss/rvss.h"
+#include "processors/RISC-V/rvms/rvms.h"
 
 namespace Ripes {
 
@@ -60,6 +61,21 @@ ProcessorRegistry::ProcessorRegistry() {
   addProcessor(ProcInfo<vsrtl::core::RVSS<uint64_t>>(
       ProcessorID::RV64_SS, "Single-cycle processor",
       "A single cycle processor", layouts, defRegVals));
+
+  // RISC-V multi cycle
+  layouts = { {"Standard",
+              ":/layouts/RISC-V/rvms/rv_ms_standard_layout.json",
+              {{{0, 0}, QPointF{0.5, 0}}}},
+             {"Extended",
+              ":/layouts/RISC-V/rvms/rv_ms_extended_layout.json",
+              {{{0, 0}, QPointF{0.5, 0}}}} };
+  defRegVals = { {2, 0x7ffffff0}, {3, 0x10000000} };
+  addProcessor(ProcInfo<vsrtl::core::RVMS<uint32_t>>(
+      ProcessorID::RV32_MS, "Multi-cycle processor",
+      "A multi cycle processor", layouts, defRegVals));
+  addProcessor(ProcInfo<vsrtl::core::RVMS<uint64_t>>(
+      ProcessorID::RV64_MS, "Multi-cycle processor",
+      "A multi cycle processor", layouts, defRegVals));
 
   // RISC-V 5-stage without forwarding or hazard detection
   layouts = {

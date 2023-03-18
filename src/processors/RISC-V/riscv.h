@@ -22,7 +22,7 @@ constexpr int c_RVRegsBits =
 /** Instruction set enumerations */
 Enum(RVInstrType, R, I, S, B, U, J);
 
-Enum(RVInstr, NOP,
+Enum(RVInstr, NOP = 0,
      /* RV32I Base Instruction Set */
      LUI, AUIPC, JAL, JALR, BEQ, BNE, BLT, BGE, BLTU, BGEU, LB, LH, LW, LBU,
      LHU, SB, SH, SW, ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, ADD,
@@ -49,6 +49,15 @@ Enum(MemOp, NOP, LB, LH, LW, LBU, LHU, SB, SH, SW, LWU, LD, SD);
 Enum(ECALL, none, print_int = 1, print_char = 2, print_string = 4, exit = 10);
 Enum(PcSrc, PC4 = 0, ALU = 1);
 Enum(PcInc, INC2 = 0, INC4 = 1);
+
+// Custom OPCODE
+Enum(MemARegEnum, AluReg = 0, MemReg = 1, PC = 2);
+Enum(FuentePCEnum, AluOut = 0, AluReg = 1);
+Enum(SelAluAEnum, PC = 0, RegA = 1, PC_MINUS4 = 2);
+Enum(SelAluBEnum, RegB = 0, PCINC = 1, IMM = 2);
+Enum(StateEnum, FETCH, DECODE, EX_typeR, EX_typeRImm, EX_LUI, MEM_typeR,
+     EX_typeMem, MEM_Load, WB_Load, MEM_Store, EX_branch, EX_jal, EX_jalR,
+     ECALL);
 
 /** Instruction field parser */
 class RVInstrParser {
