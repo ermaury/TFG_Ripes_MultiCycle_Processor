@@ -216,7 +216,7 @@ public:
     bool valid = true;
     // Necesitamos comprobar si el estado del automáta que define el control del
     // procesador indica que se va a leer una instrucción (estado FETCH).
-    if (control->currentState == State::FETCH) {
+    if (control->LeerInstr) {
       // En tal caso, si la dirección de la instrucción almacenada en el
       // registro PC es inválida, la función isExecutableAddress() retornará
       // false.
