@@ -17,6 +17,7 @@
 #include "rv_alu_zero.h"
 #include "rv_multi_branch.h"
 #include "rv_multi_control.h"
+#include "rv_ir_reg.h"
 
 namespace vsrtl {
 namespace core {
@@ -33,7 +34,7 @@ public:
   RVMS(const QStringList &extensions)
       : RipesVSRTLProcessor("Multi Cycle RISC-V Processor") {
     m_enabledISA = std::make_shared<ISAInfo<XLenToRVISA<XLEN>()>>(extensions);
-    decode->setISA(m_enabledISA);
+    ir_reg->setISA(m_enabledISA);
     uncompress->setISA(m_enabledISA);
     // -----------------------------------------------------------------------
     // Program counter
@@ -61,29 +62,25 @@ public:
 
     // -----------------------------------------------------------------------
     // Instruction Register
-    uncompress->exp_instr >> ir_reg->in;
+    uncompress->exp_instr >> ir_reg->instr;
     control->EscrIR >> ir_reg->wr_en;
 
     // -----------------------------------------------------------------------
-    // Decode
-    ir_reg->out >> decode->instr;
-
-    // -----------------------------------------------------------------------
     // Control signals
-    decode->opcode >> control->opcode;
+    ir_reg->opcode >> control->opcode;
 
     // -----------------------------------------------------------------------
     // Immediate
-    decode->opcode >> immediate->opcode;
-    ir_reg->out >> immediate->instr;
+    ir_reg->opcode >> immediate->opcode;
+    ir_reg->exp_instr >> immediate->instr;
 
     // -----------------------------------------------------------------------
     // Registers
 
     // Decode -> Banco de Registros
-    decode->wr_reg_idx >> registerFile->wr_addr;
-    decode->r1_reg_idx >> registerFile->r1_addr;
-    decode->r2_reg_idx >> registerFile->r2_addr;
+    ir_reg->wr_reg_idx >> registerFile->wr_addr;
+    ir_reg->r1_reg_idx >> registerFile->r1_addr;
+    ir_reg->r2_reg_idx >> registerFile->r2_addr;
 
     // Banco de Registros -> Registros auxiliares A y B
     registerFile->r1_out >> a_reg->in;
@@ -169,14 +166,13 @@ public:
   SUBCOMPONENT(alu, TYPE(ALUZero<XLEN>));
   SUBCOMPONENT(control, MultiControl);
   SUBCOMPONENT(immediate, TYPE(Immediate<XLEN>));
-  SUBCOMPONENT(decode, TYPE(Decode<XLEN>));
+  SUBCOMPONENT(ir_reg, TYPE(IR_REG<XLEN>));
   SUBCOMPONENT(uncompress, TYPE(Uncompress<XLEN>));
   SUBCOMPONENT(branch, TYPE(MultiBranch<XLEN>));
 
   // Registers
   SUBCOMPONENT(pc_reg, WriteControlRegister<XLEN>);
   SUBCOMPONENT(pc_cur, WriteControlRegister<XLEN>);
-  SUBCOMPONENT(ir_reg, WriteControlRegister<c_RVInstrWidth>);
   SUBCOMPONENT(a_reg, Register<XLEN>);
   SUBCOMPONENT(b_reg, Register<XLEN>);
   SUBCOMPONENT(mem_reg, Register<XLEN>);

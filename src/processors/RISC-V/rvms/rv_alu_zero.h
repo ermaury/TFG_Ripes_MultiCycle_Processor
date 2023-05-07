@@ -194,7 +194,7 @@ public:
     };
 
     res_sign << [=] { 
-        return (res.uValue() >> 31) == 1;
+        return (res.uValue() >> (XLEN - 1)) == 1;
     };
   }
 
