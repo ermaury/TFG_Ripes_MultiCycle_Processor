@@ -75,7 +75,7 @@ public:
     // -----------------------------------------------------------------------
     // Immediate
     decode->opcode >> immediate->opcode;
-    uncompress->exp_instr >> immediate->instr;
+    ir_reg->out >> immediate->instr;
 
     // -----------------------------------------------------------------------
     // Registers
@@ -103,6 +103,7 @@ public:
     mem_reg->out >> reg_wr_src->get(MemARegEnum::MemReg);
     alu_reg->out >> reg_wr_src->get(MemARegEnum::AluReg);
     pc_reg->out >> reg_wr_src->get(MemARegEnum::PC);
+    immediate->imm >> reg_wr_src->get(MemARegEnum::IMM);
 
     control->MemAReg >> reg_wr_src->select;
 
@@ -146,6 +147,8 @@ public:
     // Branch Detector
     alu->zero >> branch->zero;
     alu->res_sign >> branch->res_sign;
+    alu->c_flag >> branch->c_flag;
+    alu->v_flag >> branch->v_flag;
     control->BranchCtrl >> branch->comp_op;
 
     // -----------------------------------------------------------------------
@@ -256,10 +259,10 @@ public:
   }
 
   MemoryAccess dataMemAccess() const override {
-    // Si la señal de control de leer memoria está activada
+    // Si la señal de control de leer memoria o escribir está activada
     // leemos la siguiente dirección de memoria (Simulación de la caché de
     // datos).
-    if (control->LeerMem) {
+    if (control->LeerMem || control->EscrMem) {
       return memToAccessInfo(data_mem);
     } else {
       MemoryAccess noneAccess;
@@ -309,8 +312,9 @@ public:
     if (control->currentState == State::FETCH) {
       m_instructionsRetired--;
     }
-    control->unclock();
-    Design::reverse();
+      control->unclock();
+      Design::reverse();
+ 
     // Ensure that reverses performed when we expected to finish in the
     // following cycle, clears this expectation.
     m_finishInNextCycle = false;

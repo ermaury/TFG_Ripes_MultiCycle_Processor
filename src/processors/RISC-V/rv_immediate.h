@@ -27,9 +27,7 @@ public:
         return VT_U(signextend<21>(fields[0] << 20 | fields[1] << 1 |
                                    fields[2] << 11 | fields[3] << 12));
       }
-      case RVInstr::JALR: {
-        return VT_U(signextend<12>((instr.uValue() >> 20)));
-      }
+      
       case RVInstr::BEQ:
       case RVInstr::BNE:
       case RVInstr::BLT:
@@ -55,7 +53,9 @@ public:
       case RVInstr::ORI:
       case RVInstr::ANDI:
       case RVInstr::ADDIW:
+      case RVInstr::JALR:
         return VT_U(signextend<12>((instr.uValue() >> 20)));
+
       case RVInstr::SLLI:
       case RVInstr::SRLI:
       case RVInstr::SRAI: {

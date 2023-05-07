@@ -21,12 +21,16 @@ public:
                 case CompOp::NE: 
                     return zero.uValue() == 0x0;
                 case CompOp::LT: 
-                    return res_sign.uValue() == 0x1;
-                //case CompOp::LTU: 
-
+                     // XOR
+                     return (res_sign.uValue() ^ v_flag.uValue()) == 0x1;
+                case CompOp::LTU:
+                    return (c_flag.uValue() == 0x0);
+                 
                 case CompOp::GE: 
-                    return zero.uValue() == 0x1 || res_sign.uValue() == 0x0; 
-                //case CompOp::GEU: 
+                    // XNOR
+                    return !(res_sign.uValue() ^ v_flag.uValue()) == 0x1;
+                case CompOp::GEU:
+                    return (c_flag.uValue() == 0x1); 
 
                 default: assert("Comparator: Unknown comparison operator"); return false;
             }
@@ -37,6 +41,8 @@ public:
   INPUTPORT_ENUM(comp_op, CompOp);
   INPUTPORT(zero, 1);
   INPUTPORT(res_sign, 1);
+  INPUTPORT(v_flag, 1);
+  INPUTPORT(c_flag, 1);
   OUTPUTPORT(res, 1);
 };
 

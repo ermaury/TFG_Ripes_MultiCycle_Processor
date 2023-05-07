@@ -50,8 +50,8 @@ Enum(ECALL, none, print_int = 1, print_char = 2, print_string = 4, exit = 10);
 Enum(PcSrc, PC4 = 0, ALU = 1);
 Enum(PcInc, INC2 = 0, INC4 = 1);
 
-// Custom OPCODE
-Enum(MemARegEnum, AluReg = 0, MemReg = 1, PC = 2);
+// MULTI-CYCLE
+Enum(MemARegEnum, AluReg = 0, MemReg = 1, PC = 2, IMM = 3);
 Enum(FuentePCEnum, AluOut = 0, AluReg = 1);
 Enum(SelAluAEnum, PC = 0, RegA = 1, PC_MINUS4 = 2);
 Enum(SelAluBEnum, RegB = 0, PCINC = 1, IMM = 2);

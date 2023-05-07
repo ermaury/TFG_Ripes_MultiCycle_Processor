@@ -32,3 +32,4 @@ Ripes
 RipesTest
 libRipesLib.a
 CMakeLists.txt
+src/processors/RISC-V/rvms/rv_ms_extended_layout_new.json

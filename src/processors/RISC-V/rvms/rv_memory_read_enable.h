@@ -42,20 +42,28 @@ public:
           switch (op.uValue()) {
               case MemOp::LB:
                 currentData = VT_U(signextend<8>(value & 0xFFUL));
+                return currentData;
               case MemOp::LBU:
                 currentData = value & 0xFFUL;
+                return currentData;
               case MemOp::LH:
                 currentData = VT_U(signextend<16>(value & 0xFFFFUL));
+                return currentData;
               case MemOp::LHU:
                 currentData = value & 0xFFFFUL;
+                return currentData;
               case MemOp::LWU:
                 currentData = value & 0xFFFFFFFFUL;
+                return currentData;
               case MemOp::LW:
                 currentData = VT_U(signextend<32>(value));
+                return currentData;
               case MemOp::LD:
                 currentData = value;
+                return currentData;
               default:
                 currentData = value;
+                return currentData;
           }
         } 
         return currentData;
@@ -66,41 +74,6 @@ public:
     setMemory(addressSpace);
     mem->setMemory(addressSpace);
   }
-
-  /* VSRTL_VT_U getCurrentData() {
-    if (rd_en) {
-      const auto &value = mem->data_out.uValue();
-      switch (op.uValue()) {
-      case MemOp::LB:
-        currentData = VT_U(signextend<8>(value & 0xFFUL));
-        return currentData
-      case MemOp::LBU:
-        currentData = value & 0xFFUL;
-        return currentData
-      case MemOp::LH:
-        currentData = VT_U(signextend<16>(value & 0xFFFFUL));
-        return currentData
-      case MemOp::LHU:
-        currentData = value & 0xFFFFUL;
-        return currentData
-      case MemOp::LWU:
-        currentData = value & 0xFFFFFFFFUL;
-        return currentData
-      case MemOp::LW:
-        currentData = VT_U(signextend<32>(value));
-        return currentData
-      case MemOp::LD:
-        currentData = value;
-        return currentData
-      default:
-        currentData = value;
-        return currentData
-      }
-
-    } else {
-      return currentData;
-    }
-  }*/
 
   // RVMemory is also a BaseMemory... A bit redundant, but RVMemory has a notion
   // of the memory operation that is happening, while the underlying

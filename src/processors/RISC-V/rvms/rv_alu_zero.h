@@ -165,12 +165,36 @@ public:
         throw std::runtime_error("Invalid ALU opcode");
       }
     };
+
+    c_flag << [=] { 
+      switch (ctrl.uValue()) {
+      case ALUOp::SUB:
+        return op2.uValue() <= op1.uValue();
+      default:
+        return false;
+      }
+    };
+
+    v_flag << [=] {
+      switch (ctrl.uValue()) {
+      case ALUOp::ADD:
+        return ((op1.sValue() >= 0 && op2.sValue() >= 0 && res.sValue() < 0) ||
+                (op1.sValue() < 0 && op2.sValue() < 0 && res.sValue() >= 0));
+
+      case ALUOp::SUB:
+        return ((op1.sValue() >= 0 && op2.sValue() < 0 && res.sValue() < 0) ||
+                (op1.sValue() < 0 && op2.sValue() >= 0 && res.sValue() >= 0));
+      default:
+        return false;
+      }
+    };
+
     zero << [=] { 
-        return op1.sValue() == op2.sValue();
+        return op1.uValue() == op2.uValue();
     };
 
     res_sign << [=] { 
-        return op1.sValue() < op2.sValue();
+        return (res.uValue() >> 31) == 1;
     };
   }
 
@@ -180,6 +204,8 @@ public:
 
   OUTPUTPORT(res, XLEN);
   OUTPUTPORT(zero, 1);
+  OUTPUTPORT(c_flag, 1);
+  OUTPUTPORT(v_flag, 1);
   OUTPUTPORT(res_sign, 1);
 };
 
