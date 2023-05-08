@@ -51,8 +51,8 @@ Enum(PcSrc, PC4 = 0, ALU = 1);
 Enum(PcInc, INC2 = 0, INC4 = 1);
 
 // MULTI-CYCLE
-Enum(MemARegEnum, AluReg = 0, MemReg = 1, PC = 2, IMM = 3);
-Enum(FuentePCEnum, AluOut = 0, AluReg = 1);
+Enum(RegDstEnum, AluReg = 0, MemReg = 1, PC = 2, IMM = 3);
+Enum(PCSourceEnum, AluOut = 0, AluReg = 1);
 Enum(SelAluAEnum, PC = 0, RegA = 1, PC_MINUS4 = 2);
 Enum(SelAluBEnum, RegB = 0, PCINC = 1, IMM = 2);
 Enum(StateEnum, FETCH, DECODE, EX_typeR, EX_typeRImm, EX_LUI, MEM_typeR,

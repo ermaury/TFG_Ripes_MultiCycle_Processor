@@ -21,17 +21,17 @@ enum State {
 };
 
 enum Signal {
-  EscrIR,
-  LeerInstr,
-  LeerMem,
-  MemAReg,
-  EscrReg,
-  EscrPC,
-  EscrPCCond,
-  FuentePC,
+  IRWrite,
+  InstrRead,
+  MemRead,
+  RegDst,
+  RegWrite,
+  PCWrite,
+  PCWriteCond,
+  PCSource,
   SelAluA,
   SelAluB,
-  EscrMem,
+  MemWrite,
   AluCtrl,
   EcallOpcode,
 };
@@ -226,17 +226,17 @@ public:
   MultiControl(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
 
-    EscrIR << [=] { return signalTable[currentState][Signal::EscrIR]; };
-    LeerInstr << [=] { return signalTable[currentState][Signal::LeerInstr]; };
-    LeerMem << [=] { return signalTable[currentState][Signal::LeerMem]; };
-    MemAReg << [=] { return signalTable[currentState][Signal::MemAReg]; };
-    EscrReg << [=] { return signalTable[currentState][Signal::EscrReg]; };
-    EscrPC << [=] { return signalTable[currentState][Signal::EscrPC]; };
-    EscrPCCond << [=] { return signalTable[currentState][Signal::EscrPCCond]; };
-    FuentePC << [=] { return signalTable[currentState][Signal::FuentePC]; };
+    IRWrite << [=] { return signalTable[currentState][Signal::IRWrite]; };
+    InstrRead << [=] { return signalTable[currentState][Signal::InstrRead]; };
+    MemRead << [=] { return signalTable[currentState][Signal::MemRead]; };
+    RegDst << [=] { return signalTable[currentState][Signal::RegDst]; };
+    RegWrite << [=] { return signalTable[currentState][Signal::RegWrite]; };
+    PCWrite << [=] { return signalTable[currentState][Signal::PCWrite]; };
+    PCWriteCond << [=] { return signalTable[currentState][Signal::PCWriteCond]; };
+    PCSource << [=] { return signalTable[currentState][Signal::PCSource]; };
     SelAluA << [=] { return signalTable[currentState][Signal::SelAluA]; };
     SelAluB << [=] { return signalTable[currentState][Signal::SelAluB]; };
-    EscrMem << [=] { return signalTable[currentState][Signal::EscrMem]; };
+    MemWrite << [=] { return signalTable[currentState][Signal::MemWrite]; };
     AluCtrl << [=] { return signalTable[currentState][Signal::AluCtrl]; };
     MemCtrl << [=] { return do_mem_ctrl(opcode.uValue()); };
     state << [=] { return currentState; };
@@ -251,20 +251,20 @@ public:
   INPUTPORT_ENUM(opcode, RVInstr);
 
   OUTPUTPORT_ENUM(ecallOpcode, RVInstr);
-  OUTPUTPORT(EscrPCCond, 1);
-  OUTPUTPORT(EscrPC, 1);
-  OUTPUTPORT_ENUM(MemAReg, MemARegEnum);
-  OUTPUTPORT(EscrIR, 1);
-  OUTPUTPORT(LeerInstr, 1);
-  OUTPUTPORT(LeerMem, 1);
+  OUTPUTPORT(PCWriteCond, 1);
+  OUTPUTPORT(PCWrite, 1);
+  OUTPUTPORT_ENUM(RegDst, RegDstEnum);
+  OUTPUTPORT(IRWrite, 1);
+  OUTPUTPORT(InstrRead, 1);
+  OUTPUTPORT(MemRead, 1);
   OUTPUTPORT_ENUM(BranchCtrl, CompOp);
-  OUTPUTPORT_ENUM(FuentePC, FuentePCEnum);
+  OUTPUTPORT_ENUM(PCSource, PCSourceEnum);
   OUTPUTPORT_ENUM(SelAluA, SelAluAEnum);
   OUTPUTPORT_ENUM(SelAluB, SelAluBEnum);
-  OUTPUTPORT(EscrReg, 1);
+  OUTPUTPORT(RegWrite, 1);
   OUTPUTPORT_ENUM(MemCtrl, MemOp);
   OUTPUTPORT_ENUM(state, StateEnum);
-  OUTPUTPORT(EscrMem, 1);
+  OUTPUTPORT(MemWrite, 1);
   OUTPUTPORT_ENUM(AluCtrl, ALUOp);
 
   int clock() {
@@ -327,7 +327,7 @@ public:
       // CICLO 5
       {{State::WB_Load, _}, State::FETCH}};
 
-  // SEÑALES DE CONTROL EN FUNCIÓN DEL ESTADO ACTUAL (currentState)
+  // CURRENT STATE CONTROL SIGNALS
 
   using ControlSignals = std::map<Signal, int>;
   using SignalTable = std::unordered_map<State, ControlSignals>;
@@ -340,212 +340,212 @@ public:
 
   SignalTable signalTable = {
       {State::FETCH,
-       {{Signal::EscrIR, true},
-        {Signal::LeerInstr, true},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, true},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, FuentePCEnum::AluOut},
+       {{Signal::IRWrite, true},
+        {Signal::InstrRead, true},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, true},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, PCSourceEnum::AluOut},
         {Signal::SelAluA, SelAluAEnum::PC},
         {Signal::SelAluB, SelAluBEnum::PCINC},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::ADD}}},
 
       {State::DECODE,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, SelAluAEnum::PC_MINUS4},
         {Signal::SelAluB, SelAluBEnum::IMM},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::ADD}}},
 
       {State::EX_typeR,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, SelAluAEnum::RegA},
         {Signal::SelAluB, SelAluBEnum::RegB},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, do_alu_ctrl(opcode.uValue())}}},
 
       {State::EX_typeRImm,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, SelAluAEnum::RegA},
         {Signal::SelAluB, SelAluBEnum::IMM},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, do_alu_ctrl(opcode.uValue())}}},
 
       {State::EX_LUI,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, MemARegEnum::IMM},
-        {Signal::EscrReg, true},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, RegDstEnum::IMM},
+        {Signal::RegWrite, true},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::MEM_typeR,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, MemARegEnum::AluReg},
-        {Signal::EscrReg, true},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, RegDstEnum::AluReg},
+        {Signal::RegWrite, true},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::EX_typeMem,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, SelAluAEnum::RegA},
         {Signal::SelAluB, SelAluBEnum::IMM},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::ADD}}},
 
       {State::MEM_Load,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, true},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, true},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::WB_Load,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, MemARegEnum::MemReg},
-        {Signal::EscrReg, true},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, RegDstEnum::MemReg},
+        {Signal::RegWrite, true},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::MEM_Store,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, true},
+        {Signal::MemWrite, true},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::EX_branch,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, true},
-        {Signal::FuentePC, FuentePCEnum::AluReg},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, true},
+        {Signal::PCSource, PCSourceEnum::AluReg},
         {Signal::SelAluA, SelAluAEnum::RegA},
         {Signal::SelAluB, SelAluBEnum::RegB},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::SUB}}},
 
       {State::EX_jal,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, MemARegEnum::PC},
-        {Signal::EscrReg, true},
-        {Signal::EscrPC, true},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, FuentePCEnum::AluReg},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, RegDstEnum::PC},
+        {Signal::RegWrite, true},
+        {Signal::PCWrite, true},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, PCSourceEnum::AluReg},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::NOP}}},
 
       {State::EX_jalR,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, MemARegEnum::PC},
-        {Signal::EscrReg, true},
-        {Signal::EscrPC, true},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, FuentePCEnum::AluOut},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, RegDstEnum::PC},
+        {Signal::RegWrite, true},
+        {Signal::PCWrite, true},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, PCSourceEnum::AluOut},
         {Signal::SelAluA, SelAluAEnum::RegA},
         {Signal::SelAluB, SelAluBEnum::IMM},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::NOP},
         {Signal::AluCtrl, ALUOp::ADD}}},
 
       {State::ECALL,
-       {{Signal::EscrIR, false},
-        {Signal::LeerInstr, false},
-        {Signal::LeerMem, false},
-        {Signal::MemAReg, false},
-        {Signal::EscrReg, false},
-        {Signal::EscrPC, false},
-        {Signal::EscrPCCond, false},
-        {Signal::FuentePC, false},
+       {{Signal::IRWrite, false},
+        {Signal::InstrRead, false},
+        {Signal::MemRead, false},
+        {Signal::RegDst, false},
+        {Signal::RegWrite, false},
+        {Signal::PCWrite, false},
+        {Signal::PCWriteCond, false},
+        {Signal::PCSource, false},
         {Signal::SelAluA, false},
         {Signal::SelAluB, false},
-        {Signal::EscrMem, false},
+        {Signal::MemWrite, false},
         {Signal::EcallOpcode, RVInstr::ECALL},
         {Signal::AluCtrl, ALUOp::NOP}}},
 

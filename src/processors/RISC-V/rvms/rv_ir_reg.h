@@ -4,6 +4,7 @@
 #include "../rv_decode.h"
 #include "../rv_uncompress.h"
 #include "VSRTL/core/vsrtl_component.h"
+#include "rv_write_control_register.h"
 
 
 namespace vsrtl {

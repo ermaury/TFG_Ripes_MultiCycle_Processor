@@ -11,13 +11,16 @@
 #include "../riscv.h"
 #include "../rv_ecallchecker.h"
 #include "../rv_immediate.h"
-#include "rv_memory_read_enable.h"
 #include "../rv_decode.h"
 #include "../rv_registerfile.h"
+
 #include "rv_alu_zero.h"
 #include "rv_multi_branch.h"
 #include "rv_multi_control.h"
 #include "rv_ir_reg.h"
+#include "rv_read_control_rom.h"
+#include "rv_write_control_register.h"
+#include "rv_memory_read_enable.h"
 
 namespace vsrtl {
 namespace core {
@@ -44,26 +47,26 @@ public:
     4 >> pc_inc->get(PcInc::INC4);
 
     branch->res >> *pc_wr_and->in[0];
-    control->EscrPCCond >> *pc_wr_and->in[1];
+    control->PCWriteCond >> *pc_wr_and->in[1];
 
     pc_wr_and->out >> *pc_wr_or->in[0];
-    control->EscrPC >> *pc_wr_or->in[1];
+    control->PCWrite >> *pc_wr_or->in[1];
 
     pc_wr_or->out >> pc_reg->wr_en;
     pc_wr_or->out >> pc_cur->wr_en;
 
-    control->FuentePC >> pc_src->select;
+    control->PCSource >> pc_src->select;
 
     // -----------------------------------------------------------------------
     // Instruction memory
     pc_reg->out >> instr_mem->addr;
     instr_mem->setMemory(m_memory);
-    control->LeerInstr >> instr_mem->rd_en;
+    control->InstrRead >> instr_mem->rd_en;
 
     // -----------------------------------------------------------------------
     // Instruction Register
     uncompress->exp_instr >> ir_reg->instr;
-    control->EscrIR >> ir_reg->wr_en;
+    control->IRWrite >> ir_reg->wr_en;
 
     // -----------------------------------------------------------------------
     // Control signals
@@ -77,65 +80,66 @@ public:
     // -----------------------------------------------------------------------
     // Registers
 
-    // Decode -> Banco de Registros
+    // IR -> Register File
     ir_reg->wr_reg_idx >> registerFile->wr_addr;
     ir_reg->r1_reg_idx >> registerFile->r1_addr;
     ir_reg->r2_reg_idx >> registerFile->r2_addr;
 
-    // Banco de Registros -> Registros auxiliares A y B
+    // Register File -> ALU'S aux registers (A & B)
     registerFile->r1_out >> a_reg->in;
     registerFile->r2_out >> b_reg->in;
 
-    // Control de escritura en el banco de registros (EscrReg)
-    control->EscrReg >> registerFile->wr_en;
+    // Register file write control signal
+    control->RegWrite >> registerFile->wr_en;
 
-    // Dato a escribir en el banco de registros (Multiplexador "reg_wr_src")
+    // Connection between multiplexer "reg_wr_src" and Register File "Data In" port.
     reg_wr_src->out >> registerFile->data_in;
 
-    // Registro de datos de Memoria.
+    // Memory data register
     data_mem->data_out >> mem_reg->in;
 
-    // Datos para seleccionar en el multiplexador de datos de
-    // registro("reg_wr_src")
-    mem_reg->out >> reg_wr_src->get(MemARegEnum::MemReg);
-    alu_reg->out >> reg_wr_src->get(MemARegEnum::AluReg);
-    pc_reg->out >> reg_wr_src->get(MemARegEnum::PC);
-    immediate->imm >> reg_wr_src->get(MemARegEnum::IMM);
+    // Data to be selected in "reg_wr_src" multiplexer
+    mem_reg->out >> reg_wr_src->get(RegDstEnum::MemReg);
+    alu_reg->out >> reg_wr_src->get(RegDstEnum::AluReg);
+    pc_reg->out >> reg_wr_src->get(RegDstEnum::PC);
+    immediate->imm >> reg_wr_src->get(RegDstEnum::IMM);
 
-    control->MemAReg >> reg_wr_src->select;
+    // Multiplexer "reg_wr_src" control
+    control->RegDst >> reg_wr_src->select;
 
     registerFile->setMemory(m_regMem);
 
-    // Datos para seleccionar en el multiplexador de PC ("pc_src")
-    alu->res >> pc_src->get(FuentePCEnum::AluOut);
-    alu_reg->out >> pc_src->get(FuentePCEnum::AluReg);
+    // Data to be selected in "pc_src" multiplexer
+    alu->res >> pc_src->get(PCSourceEnum::AluOut);
+    alu_reg->out >> pc_src->get(PCSourceEnum::AluReg);
 
     // -----------------------------------------------------------------------
     // ALU
 
+    // Data to be selected in "alu_op1_src" multiplexer
     pc_cur->out >> alu_op1_src->get(SelAluAEnum::PC_MINUS4);
-
     a_reg->out >> alu_op1_src->get(SelAluAEnum::RegA);
     pc_reg->out >> alu_op1_src->get(SelAluAEnum::PC);
     control->SelAluA >> alu_op1_src->select;
+    alu_op1_src->out >> alu->op1;
 
+    // Data to be selected in "alu_op2_src" multiplexer
     b_reg->out >> alu_op2_src->get(SelAluBEnum::RegB);
     pc_inc->out >> alu_op2_src->get(SelAluBEnum::PCINC);
     immediate->imm >> alu_op2_src->get(SelAluBEnum::IMM);
     control->SelAluB >> alu_op2_src->select;
-
-    alu_op1_src->out >> alu->op1;
     alu_op2_src->out >> alu->op2;
-
     control->AluCtrl >> alu->ctrl;
+
+    // ALU output -> ALU register
     alu->res >> alu_reg->in;
 
     // -----------------------------------------------------------------------
     // Data memory
     alu_reg->out >> data_mem->addr;
-    control->LeerMem >> data_mem->rd_en;
-    // alu->res >> data_mem->addr;
-    control->EscrMem >> data_mem->wr_en;
+    control->MemRead >> data_mem->rd_en;
+
+    control->MemWrite >> data_mem->wr_en;
     b_reg->out >> data_mem->data_in;
     control->MemCtrl >> data_mem->op;
     data_mem->mem->setMemory(m_memory);
@@ -179,8 +183,8 @@ public:
   SUBCOMPONENT(alu_reg, Register<XLEN>);
 
   // Multiplexers
-  SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<MemARegEnum, XLEN>));
-  SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<FuentePCEnum, XLEN>));
+  SUBCOMPONENT(reg_wr_src, TYPE(EnumMultiplexer<RegDstEnum, XLEN>));
+  SUBCOMPONENT(pc_src, TYPE(EnumMultiplexer<PCSourceEnum, XLEN>));
   SUBCOMPONENT(alu_op1_src, TYPE(EnumMultiplexer<SelAluAEnum, XLEN>));
   SUBCOMPONENT(alu_op2_src, TYPE(EnumMultiplexer<SelAluBEnum, XLEN>));
   SUBCOMPONENT(pc_inc, TYPE(EnumMultiplexer<PcInc, XLEN>));
@@ -213,17 +217,16 @@ public:
   StageInfo stageInfo(StageIndex) const override {
 
     bool valid = true;
-    // Necesitamos comprobar si el estado del automáta que define el control del
-    // procesador indica que se va a leer una instrucción (estado FETCH).
-    if (control->LeerInstr) {
-      // En tal caso, si la dirección de la instrucción almacenada en el
-      // registro PC es inválida, la función isExecutableAddress() retornará
-      // false.
+    // We need to check if the current state of the processor 
+    // indicates that an instruction is going to be read (FETCH state).
+    if (control->InstrRead) {
+      // In that case, if the address of the instruction stored in the PC register is invalid
+      // the isExecutableAddress() function will return false.
       valid = isExecutableAddress(pc_reg->out.uValue());
       return StageInfo({pc_reg->out.uValue(), valid, StageInfo::State::None});
     } else {
-      // En caso de que el ciclo actual corresponda a un estado intermedio de
-      // una instrucción devolvemos el contenido del registro Current PC.
+      // If the current state corresponds to an intermediate state of an instruction
+      // we will return the content of Current PC register.
       valid = isExecutableAddress(pc_cur->out.uValue());
       return StageInfo({pc_cur->out.uValue(), valid, StageInfo::State::None});
     }
@@ -255,10 +258,10 @@ public:
   }
 
   MemoryAccess dataMemAccess() const override {
-    // Si la señal de control de leer memoria o escribir está activada
-    // leemos la siguiente dirección de memoria (Simulación de la caché de
-    // datos).
-    if (control->LeerMem || control->EscrMem) {
+
+    // If the read or write control signal is set, we will read the next memory address
+    // (Data cache sim)
+    if (control->MemRead || control->MemWrite) {
       return memToAccessInfo(data_mem);
     } else {
       MemoryAccess noneAccess;
@@ -268,9 +271,9 @@ public:
   }
   
   MemoryAccess instrMemAccess() const override {
-    // Si la señal de control de leer instrucción está activada
-    // leemos la siguiente instrucción (Simulación de la caché de Instrucciones).
-    if (control->LeerInstr) {
+    // If the read control signal is set, we will read the next instruction
+    // (Instruction cache sim)
+    if (control->InstrRead) {
       MemoryAccess instrAccess = memToAccessInfo(instr_mem);
       instrAccess.type = MemoryAccess::Read;
       return instrAccess;
@@ -347,7 +350,6 @@ public:
 private:
   bool m_finishInNextCycle = false;
   bool m_finished = false;
-  QString currentStateName = "FETCH";
   std::shared_ptr<ISAInfoBase> m_enabledISA;
   ProcessorStructure m_structure = {{0, 1}};
 };
