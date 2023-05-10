@@ -13,28 +13,6 @@ public:
   MultiBranch(const std::string &name, SimComponent *parent)
       : Component(name, parent) {
     // clang-format off
-        /*res << [=] {
-            switch(comp_op.uValue()){
-                case CompOp::NOP: return false;
-                case CompOp::EQ: 
-                    return (bool)zero.uValue();
-                case CompOp::NE: 
-                    return (bool)(!zero.uValue());
-                case CompOp::LT: 
-                     // XOR
-                     return (bool)(res_sign.uValue() ^ v_flag.uValue());
-                case CompOp::LTU:
-                    return (bool)(!c_flag.uValue());
-                 
-                case CompOp::GE: 
-                    // XNOR
-                    return (bool)(!(res_sign.uValue() ^ v_flag.uValue()));
-                case CompOp::GEU:
-                    return (bool)(c_flag.uValue()); 
-
-                default: assert("Comparator: Unknown comparison operator"); return false;
-            }
-        };*/
         // NOP
         0 >> multiplexer->get(CompOp::NOP);
         // BEQ
