@@ -38,36 +38,33 @@ public:
     data_out << [=] { 
 
         if (rd_en) {
-          const auto &value = mem->data_out.uValue();
-          switch (op.uValue()) {
-              case MemOp::LB:
-                currentData = VT_U(signextend<8>(value & 0xFFUL));
-                return currentData;
-              case MemOp::LBU:
-                currentData = value & 0xFFUL;
-                return currentData;
-              case MemOp::LH:
-                currentData = VT_U(signextend<16>(value & 0xFFFFUL));
-                return currentData;
-              case MemOp::LHU:
-                currentData = value & 0xFFFFUL;
-                return currentData;
-              case MemOp::LWU:
-                currentData = value & 0xFFFFFFFFUL;
-                return currentData;
-              case MemOp::LW:
-                currentData = VT_U(signextend<32>(value));
-                return currentData;
-              case MemOp::LD:
-                currentData = value;
-                return currentData;
-              default:
-                currentData = value;
-                return currentData;
-          }
-        } 
-        return currentData;
+            const auto &value = mem->data_out.uValue();
+            switch (op.uValue()) {
+                case MemOp::LB:
+                  return VT_U(signextend<8>(value & 0xFFUL));
+                case MemOp::LBU:
+                  return value & 0xFFUL;
+                case MemOp::LH:
+                  return VT_U(signextend<16>(value & 0xFFFFUL));
+                case MemOp::LHU:
+                  return value & 0xFFFFUL;
+                case MemOp::LWU:
+                  return value & 0xFFFFFFFFUL;
+                case MemOp::LW:
+                  return VT_U(signextend<32>(value));
+                case MemOp::LD:
+                  return value;
+                default:
+                  return value;
+                }      
+            } 
+        else {
+            return reg->out.uValue();
+        }
     };
+
+    data_out >> reg->in;
+    rd_en >> reg->wr_en;
   }
 
   void setMemory(AddressSpace *addressSpace) {
@@ -97,6 +94,8 @@ public:
   INPUTPORT(rd_en, 1);
   INPUTPORT_ENUM(op, MemOp);
   OUTPUTPORT(data_out, dataWidth);
+
+  SUBCOMPONENT(reg, WriteControlRegister<dataWidth>);
 };
 
 } // namespace core

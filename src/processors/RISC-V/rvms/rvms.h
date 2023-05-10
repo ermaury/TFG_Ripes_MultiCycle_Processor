@@ -278,7 +278,7 @@ public:
       instrAccess.type = MemoryAccess::Read;
       return instrAccess;
     } else {
-      // En caso negativo, no leemos ninguna instrucción.
+      // If not, we don't read any instruction.
       MemoryAccess noneAccess;
       noneAccess.type = MemoryAccess::None;
       return noneAccess;

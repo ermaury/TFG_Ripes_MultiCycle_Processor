@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../riscv.h"
 #include "VSRTL/core/vsrtl_memory.h"
 #include "VSRTL/core/vsrtl_wire.h"
-#include "../riscv.h"
 
 namespace vsrtl {
 namespace core {
@@ -21,34 +21,31 @@ public:
     data_out << [=] {
       if (rd_en) {
         auto _addr = addr.uValue();
-        lastSavedAddr = addr.uValue();
         auto val = this->read(
             _addr, dataWidth / CHAR_BIT,
             ceillog2((byteIndexed ? addrWidth : dataWidth) / CHAR_BIT));
         return val;
       } else {
-        auto _addr = lastSavedAddr;
-        auto val = this->read(
-            _addr, dataWidth / CHAR_BIT,
-            ceillog2((byteIndexed ? addrWidth : dataWidth) / CHAR_BIT));
-        return val;
+        return reg->out.uValue();
       }
     };
+
+    data_out >> reg->in;
+    rd_en >> reg->wr_en;
   }
 
   AddressSpace::RegionType accessRegion() const override {
     return this->memory()->regionType(addr.uValue());
   }
 
-  virtual VSRTL_VT_U addressSig() const override { return lastSavedAddr; };
+  virtual VSRTL_VT_U addressSig() const override { return addr.uValue(); };
   virtual VSRTL_VT_U wrEnSig() const override { return 0; };
-
-  VSRTL_VT_U lastSavedAddr = 0x00000000;
 
   INPUTPORT(addr, addrWidth);
   INPUTPORT(rd_en, 1);
-
   OUTPUTPORT(data_out, dataWidth);
+
+  SUBCOMPONENT(reg, WriteControlRegister<dataWidth>);
 };
 
 } // namespace core
