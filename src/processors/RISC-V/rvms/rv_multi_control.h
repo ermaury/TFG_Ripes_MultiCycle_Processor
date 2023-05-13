@@ -294,13 +294,13 @@ public:
       return stateMachine[std::pair{currentState, _}];
   }
 
-  // MAQUINA DE ESTADOS
+  // State Machine
   using StateKey = std::pair<State, InstrType>;
   InstrType _ = InstrType::None;
   std::map<StateKey, State> stateMachine = {
-      // CICLO 1
+      // Cycle 1
       {{State::FETCH, _}, State::DECODE},
-      // CICLO 2
+      // Cycle 2
       {{State::DECODE, InstrType::RType}, State::EX_typeR},
       {{State::DECODE, InstrType::IType}, State::EX_typeRImm},
       {{State::DECODE, InstrType::AUIPC}, State::MEM_typeR},
@@ -311,7 +311,7 @@ public:
       {{State::DECODE, InstrType::Syscall}, State::ECALL},
       {{State::DECODE, InstrType::StoreType}, State::EX_typeMem},
       {{State::DECODE, InstrType::LoadType}, State::EX_typeMem},
-      // CICLO 3
+      // Cycle 3
       {{State::EX_typeR, _}, State::MEM_typeR},
       {{State::EX_typeRImm, _}, State::MEM_typeR},
       {{State::EX_LUI, _}, State::FETCH},
@@ -320,11 +320,11 @@ public:
       {{State::EX_jalR, _}, State::FETCH},
       {{State::EX_typeMem, InstrType::LoadType}, State::MEM_Load},
       {{State::EX_typeMem, InstrType::StoreType}, State::MEM_Store},
-      // CICLO 4
+      // Cycle 4
       {{State::MEM_Load, _}, State::WB_Load},
       {{State::MEM_Store, _}, State::FETCH},
       {{State::MEM_typeR, _}, State::FETCH},
-      // CICLO 5
+      // Cycle 5
       {{State::WB_Load, _}, State::FETCH}};
 
   // CURRENT STATE CONTROL SIGNALS
