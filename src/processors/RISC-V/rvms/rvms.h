@@ -273,7 +273,7 @@ public:
   MemoryAccess instrMemAccess() const override {
     // If the read control signal is set, we will read the next instruction
     // (Instruction cache sim)
-    if (control->InstrRead) {
+    if (control->InstrRead && !m_finished) {
       MemoryAccess instrAccess = memToAccessInfo(instr_mem);
       instrAccess.type = MemoryAccess::Read;
       return instrAccess;
