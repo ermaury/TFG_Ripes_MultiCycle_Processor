@@ -275,13 +275,13 @@ public:
     return currentState == State::FETCH;
   }
 
-  int unclock() {
+  void unclock() {
     currentState = listStates.back();
     m_cycles_count--;
     listStates.pop_back();
   }
 
-  int reset() {
+  void reset() {
     currentState = State::FETCH;
     m_cycles_count = 0;
     listStates.clear();

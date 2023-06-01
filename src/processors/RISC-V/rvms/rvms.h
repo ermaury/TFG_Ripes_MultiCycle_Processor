@@ -206,7 +206,7 @@ public:
   // Ripes interface compliance
   const ProcessorStructure &structure() const override { return m_structure; }
 
-  unsigned int getPcForStage(StageIndex idx) const override {
+  unsigned int getPcForStage(StageIndex) const override {
     return pc_cur->out.uValue();
   }
 
