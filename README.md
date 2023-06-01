@@ -1,20 +1,24 @@
-# Ripes
-[![Windows / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/windows-release.yml)
-[![Mac release / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/mac-release.yml)
-[![Ubuntu release 16.04 / Qt 5.15](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/linux-release.yml)
-[![Ripes CI tests](https://github.com/mortbopet/Ripes/actions/workflows/test.yml/badge.svg)](https://github.com/mortbopet/Ripes/actions/workflows/test.yml)
-[![Gitter](https://badges.gitter.im/Ripes-VSRTL/Ripes.svg)](https://gitter.im/Ripes-VSRTL/)
+# Modified Version of Ripes simulator to include RISC-V multicycle processor.
+
+This project is a modified version of the original repository [Ripes](https://github.com/mortbopet/Ripes), which implements a RISC-V multicycle processor.
+
+## Description
+
+The goal of this project is to extend the original repository to add additional features and specific enhancements related to the implementation of a RISC-V multicycle processor.
+
+## Modified Features
+
+- New VSRTL components such as write control registers, read control memory (instrucction and data), ALU flags to check conditional branches.
+
+- New multicycle processor model added ([state diagram](./src/processors/RISC-V/rvms/StateDiagram/RVI32_StateMachine.drawio.pdf)).
+
+## Compilation
+
+This project follows the same compilation guidelines as the original repository [Ripes](https://github.com/mortbopet/Ripes).
+
 
 Ripes is a visual computer architecture simulator and assembly code editor built for the [RISC-V instruction set architecture](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf).
 
-If you enjoy using Ripes, or find it useful in teaching, feel free to leave a tip through [Ko-Fi](https://ko-fi.com/mortbopet).
-
-For questions, comments, feature requests, or new ideas, don't hesitate to share these at the [discussions page](https://github.com/mortbopet/Ripes/discussions).  
-For bugs or issues, please report these at the [issues page](https://github.com/mortbopet/Ripes/issues).
-
-<p align="center">
-    <img src="https://github.com/mortbopet/Ripes/blob/master/resources/images/animation.gif?raw=true" />
-</p>
 
 ## Usage
 Ripes may be used to explore concepts such as:
@@ -45,29 +49,10 @@ Initially, the following dependencies must be made available:
 
 Then, Ripes can be checked out and built as a standard CMake project:
 ```
-git clone --recursive https://github.com/mortbopet/Ripes.git
+git clone --recursive https://github.com/ermaury/TFG_Ripes_MultiCycle_Processor.git
 cd Ripes/
 cmake .
 Unix:               Windows:
 make                jom.exe / nmake.exe / ...
 ```
 Note, that you must have Qt available in your `CMAKE_PREFIX_PATH`. For further information on building Qt projects with CMake, refer to [Qt: Build with CMake](https://doc.qt.io/qt-5/cmake-manual.html).
-
----
-In papers and reports, please refer to Ripes as follows: 'Morten Borup Petersen. Ripes. https://github.com/mortbopet/Ripes' or by referring to the [WCAE'21 paper on the project](https://ieeexplore.ieee.org/document/9707149), e.g. using the following BibTeX code:
-```
-@MISC{Ripes,
-	author = {Morten Borup Petersen},
-	title = {Ripes},
-	howpublished = "\url{https://github.com/mortbopet/Ripes}"
-}
-
-@inproceedings{petersen2021ripes,
-  title={Ripes: A Visual Computer Architecture Simulator},
-  author={Petersen, Morten B},
-  booktitle={2021 ACM/IEEE Workshop on Computer Architecture Education (WCAE)},
-  pages={1--8},
-  year={2021},
-  organization={IEEE}
-}
-```
